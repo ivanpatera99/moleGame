@@ -1,53 +1,70 @@
+var html = document.querySelector('html');
+var text = document.querySelector('h1');
 var holes = document.querySelectorAll('.hole');
 var scoreBoard = document.querySelector('.score');
-var moles = document.querySelectorAll('.mole');
-var lastHole;
+var lastHole = 0;
 var timeUp = false;
 var score = 0;
+var gameStarted;
 
-
-function randomTime(min, max) {
-    return Math.round(Math.random() * (max - min) + min);
+document.querySelector('.startButton').addEventListener('click', function () {
+  if (!gameStarted) {
+    Game()
   }
+});
 
-function randomHole(holes) {
-    var idx = Math.floor(Math.random() * holes.length);
-    var hole = holes[idx];
-    if (hole === lastHole) {
-            return randomHole(holes); 
-
-            //no queremos que se repita mismo agujero 2 veces
+holes.forEach(function(hole) {
+  hole.addEventListener('click', () => {
+    if (gameStarted) {
+      if(hole.classList.contains('showMole')) {
+        hole.classList.remove('showMole')
+        score ++
+        scoreBoard.textContent = score
+      } else {
+        html.classList.add('loser')
+        text.textContent = `Perdiste, tu puntaje fue: ${score}`
+        gameStarted = false
+      }
     }
+  })
+});
 
-    lastHole = hole;
-    return hole;
+
+function Game() {
+  if (!gameStarted) {
+    resetGame()
+    gameStarted = true
   }
+  
+  setTimeout(function () {
+    //Each second
+    moleUp()
+    if (gameStarted) {
+      Game()
+    }
+  }, 1000)
+}
 
+function moleUp() {
+  var i = getAleatoryHole();
+  holes[lastHole].classList.remove('showMole');
+  holes[i].classList.add('showMole');
+  lastHole = i;
+}
 
-function peep() {
-    var time = randomTime(200, 1000);
-    var hole = randomHole(holes);
-    hole.classList.add('up');
-    setTimeout(() => {
-      hole.classList.remove('up');
-      if (!timeUp) peep();
-    }, time);
+function getAleatoryHole() {
+  var random = Math.round(Math.random() * 5)
+  console.log(random)
+  if (random === lastHole){
+    return getAleatoryHole();
+  } else {
+    return random;
   }
+}
 
-
-function startGame() {
-    scoreBoard.textContent = 0;
-    timeUp = false;
-    score = 0;
-    peep();
-    setTimeout(() => timeUp = true, 10000)
-  }
-
-
-function bonk(e) {
-    score++;
-    this.parentNode.classList.remove('up');
-    scoreBoard.textContent = score;
-  }
-
-moles.forEach(mole => mole.addEventListener('click', bonk));
+function resetGame() {
+  text.innerHTML = '¡Golpea al topo! <span class="score">0</span>'
+  html.classList.remove('loser')
+  scoreBoard = document.querySelector('.score');
+  score = 0
+}
